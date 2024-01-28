@@ -1,8 +1,10 @@
 import { GiPlagueDoctorProfile } from "react-icons/gi";
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 export default function Header() {
-  
+  const { currentUser } = useSelector((state) => state.user);
+
   return (
     <header className="flex justify-between items-center py-2 px-4 bg-slate-200 shadow-md">
       <div className="">
@@ -15,12 +17,18 @@ export default function Header() {
         </Link>
       </div>
       <div className="flex gap-4 text-slate-700">
-        <p>Name of User</p>
-        <Link to="/sign-in">
+        <p>{currentUser ? currentUser.username : ""}</p>
+        {currentUser ? (
           <button className="rounded bg-slate-500 hover:bg-slate-600 px-2 transition text-white">
-            Войти
+            Выйти
           </button>
-        </Link>
+        ) : (
+          <Link to="/sign-in">
+            <button className="rounded bg-slate-500 hover:bg-slate-600 px-2 transition text-white">
+              Войти
+            </button>
+          </Link>
+        )}
       </div>
     </header>
   );
