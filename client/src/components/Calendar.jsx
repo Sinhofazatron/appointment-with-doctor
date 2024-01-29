@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn, dayNames } from "../lib/utils";
 import {
   add,
@@ -11,7 +11,6 @@ import {
   endOfWeek,
   format,
   getDay,
-  isAfter,
   isBefore,
   isEqual,
   isSameMonth,
@@ -27,8 +26,8 @@ import {
 } from "date-fns";
 import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import AvailableHours from "../components/Hours";
-import { useSelector } from "react-redux";
-import TimesBar from "../components/TimesBar";
+import { useDispatch, useSelector } from "react-redux";
+import { getAppointmentSuccess } from "../redux/appointment/appointmentSlice";
 
 const reservations = [
   addHours(startOfToday(), 5).toString(),
@@ -40,16 +39,34 @@ const reservations = [
 ];
 
 export default function Calendar() {
-	const { currentUser } = useSelector((state) => state.user);
+  const { currentUser } = useSelector((state) => state.user);
+  const { currentAppointments } = useSelector((state) => state.appointment);
+  const dispatch = useDispatch();
 
-	console.log();
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const res = await fetch("/api/appointment/get");
+        const data = await res.json();
+
+        dispatch(getAppointmentSuccess(data));
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchAppointments();
+  }, []);
+
   // display div of availables times
   const [calendarTouched, setCalendarTouched] = useState(false);
 
   // handle dates
-  let today = startOfTomorrow();
-  let [currentMonth, setCurrentMonth] = useState(format(today, "MMM-yyyy"));
-  let [selectedDay, setSelectedDay] = useState();
+  let tomorrow = startOfTomorrow();
+  let today = startOfToday();
+  let [currentMonth, setCurrentMonth] = useState(format(tomorrow, "MMM-yyyy"));
+  let [selectedDay, setSelectedDay] = useState(today);
+
   let firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date());
   let days = useMemo(
     () =>
@@ -59,15 +76,6 @@ export default function Calendar() {
       }),
     [firstDayCurrentMonth]
   );
-
-  // all days avaiilable times in this month until you change it
-  const [availableTimesInThisMonth, setAvailableTimesInThisMonth] = useState(
-    []
-  );
-  const [
-    availableTimesInThisMonthForEachDay,
-    setAvailableTimesInThisMonthForEachDay,
-  ] = useState([]);
 
   // next and prev month functions
   function prevMonth() {
@@ -80,7 +88,7 @@ export default function Calendar() {
   }
 
   // get available times for the selected day
-  const freeTimes = useMemo(() => {
+  const allTimes = useMemo(() => {
     const StartOfToday = startOfDay(selectedDay);
     const endOfToday = endOfDay(selectedDay);
     // change your working hours here
@@ -102,43 +110,22 @@ export default function Calendar() {
     return freeTimes;
   }, [selectedDay]);
 
-  // calculate the number of available times for each day in this month
-  // useMemo(() => {
-  //   let thisMonthTimesLength = [];
-  //   let thisMonthTimesEachDay = [];
+  // Comparison of free time and busy time
+  let allAppointment = currentAppointments.map((item) => item.appointmentHour);
+  const allBusyTimes = [];
 
-  //   days.map((day, dayIdx) => {
-  //     // get times
+  for (let appointment of allAppointment) {
+    appointment.map((item) => allBusyTimes.push(item));
+  }
 
-  //     const StartOfToday = startOfTomorrow(day);
-  //     const endOfToday = endOfDay(day);
-  //     // change your working hours here
-  //     const startHour = set(StartOfToday, { hours: 9 });
-  //     const endHour = set(endOfToday, { hours: 17 });
-  //     let hoursInDay = eachMinuteOfInterval(
-  //       {
-  //         start: startHour,
-  //         end: endHour,
-  //       },
-  //       { step: 60 }
-  //     );
-  //     // filter the available hours
-  //     let freeTimes = hoursInDay.filter(
-  //       (hour) =>
-  //         !reservations.includes(parseISO(hour.toISOString()).toString())
-  //     );
-  //     thisMonthTimesLength.push(freeTimes.length);
-  //     thisMonthTimesEachDay.push(freeTimes);
-  //   });
-
-  //   setAvailableTimesInThisMonth(thisMonthTimesLength);
-  //   setAvailableTimesInThisMonthForEachDay(thisMonthTimesEachDay);
-  // }, [currentMonth]);
+  let allTimesArray = allTimes.map((item) => String(new Date(item)));
+  let allBusyTimesArray = allBusyTimes.map((item) => String(new Date(item)));
+  const filteredArray = allTimesArray.filter(
+    (value) => !allBusyTimesArray.includes(value)
+  );
 
   return (
     <div className="flex flex-col w-[70%] items-center gap-2">
-      
-
       {/* calendar implementation */}
       <div className="flex flex-col gap-2 h-[23rem] w-[25rem] mt-4">
         {/* calendar header */}
@@ -210,9 +197,9 @@ export default function Calendar() {
                       "w-12 h-12 flex flex-col p-2 justify-center items-center rounded-xl gap-0 group bg-green-200 relative group",
                       isEqual(day, selectedDay) &&
                         "bg-green-400 text-slate-900 text-lg",
-                      isBefore(day, today) &&
+                      isBefore(day, tomorrow) &&
                         "text-red-800 bg-violet-200 cursor-not-allowed",
-                      isBefore(day, today) && "cursor-not-allowed",
+                      isBefore(day, tomorrow) && "cursor-not-allowed",
                       isEqual(day, selectedDay) &&
                         isToday(day) &&
                         "bg-blue-200",
@@ -225,16 +212,9 @@ export default function Calendar() {
                         isSameMonth(day, firstDayCurrentMonth) &&
                         "text-gray-900"
                     )}
-                    disabled={!currentUser || isBefore(day, today)}
-                    title={!currentUser ? 'Необходима регистрация' : ''}
+                    disabled={!currentUser || isBefore(day, tomorrow)}
+                    title={!currentUser ? "Необходима регистрация" : ""}
                   >
-                    {isAfter(day, startOfToday()) && (
-                      <span className="hidden group-hover:flex absolute top-0 -translate-x-.5 -translate-y-4 z-10 text-[11px] bg-slate-900 text-slate-100 px-1 rounded-md gap-1">
-                        <span>Доступно</span>
-                        <span>{freeTimes.length}</span>
-                      </span>
-                    )}
-
                     <time
                       dateTime={format(day, "yyyy-MM-dd")}
                       className={cn(
@@ -246,13 +226,16 @@ export default function Calendar() {
                       {format(day, "d")}
                     </time>
 
-                    <CheckCircle2
-                      className={cn(
-                        "hidden",
-                        isEqual(day, selectedDay) &&
-                          "absolute block top-0 right-0 h-[18px] w-[18px] translate-x-1 -translate-y-1 text-orange-900"
-                      )}
-                    />
+                    {String(new Date(selectedDay)) ==
+                    String(new Date(today)) ? null : (
+                      <CheckCircle2
+                        className={cn(
+                          "hidden",
+                          isEqual(day, selectedDay) &&
+                            "absolute block top-0 right-0 h-[18px] w-[18px] translate-x-1 -translate-y-1 text-orange-900"
+                        )}
+                      />
+                    )}
                   </button>
                 </div>
               );
@@ -263,7 +246,7 @@ export default function Calendar() {
 
       <div className={cn(`hidden`, calendarTouched && "block")}>
         <span className="flex items-center w-full justify-center gap-1"></span>
-        <AvailableHours freeTimes={freeTimes} />
+        <AvailableHours freeTimes={filteredArray} />
       </div>
     </div>
   );

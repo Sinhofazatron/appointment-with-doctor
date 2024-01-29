@@ -1,25 +1,14 @@
 import { format, isSameMinute } from "date-fns";
 import { CheckCircle2 } from "lucide-react";
-import { memo, useState } from "react";
+import { useState } from "react";
 import { cn } from "../lib/utils";
 import { useSelector } from "react-redux";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 
-const AvailableHours = memo(({ freeTimes }) => {
+const AvailableHours = ({ freeTimes }) => {
   const [selectedTime, setSelectedTime] = useState();
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const { currentUser } = useSelector((state) => state.user);
-  
-  //   if (freeTimes) {
-  //     let a = String(new Date(freeTimes[3]));
-  //     console.log(
-  //       a === "Sun Jan 28 2024 12:00:00 GMT+0300 (Москва, стандартное время)"
-  //     );
-
-  //     let b = String(new Date("2024-01-28T09:00:00.000Z"));
-
-  //     console.log(a == b);
-  //   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +23,7 @@ const AvailableHours = memo(({ freeTimes }) => {
         body: JSON.stringify({
           appointmentHour: selectedTime,
           userRef: currentUser._id,
-          userName: currentUser.username
+          userName: currentUser.username,
         }),
       });
       const data = await res.json();
@@ -42,13 +31,12 @@ const AvailableHours = memo(({ freeTimes }) => {
       setLoading(false);
 
       if (data.success === false) {
-        toast.error(data.message)
-        setError(data.message);
+        toast.error(data.message);
       }
 
-      toast.success('Вы успешно записаны к доктору')
+      toast.success("Вы успешно записаны к доктору");
     } catch (error) {
-      setError(error.message);
+      toast.error(error.message);
       setLoading(false);
     }
   };
@@ -108,6 +96,6 @@ const AvailableHours = memo(({ freeTimes }) => {
       )}
     </div>
   );
-});
+};
 
 export default AvailableHours;
