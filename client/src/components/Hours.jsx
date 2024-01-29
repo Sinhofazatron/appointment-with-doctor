@@ -5,6 +5,7 @@ import { cn } from "../lib/utils";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
+// eslint-disable-next-line react/prop-types
 const AvailableHours = ({ freeTimes }) => {
   const [selectedTime, setSelectedTime] = useState();
   const [loading, setLoading] = useState(false);
