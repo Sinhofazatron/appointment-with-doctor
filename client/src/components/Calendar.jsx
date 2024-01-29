@@ -125,7 +125,7 @@ export default function Calendar() {
   );
 
   return (
-    <div className="flex flex-col w-[70%] items-center gap-2">
+    <div className="flex flex-col w-[70%] max-md:w-[100%] items-center gap-2">
       {/* calendar implementation */}
       <div className="flex flex-col gap-2 h-[23rem] w-[25rem] mt-4">
         {/* calendar header */}
