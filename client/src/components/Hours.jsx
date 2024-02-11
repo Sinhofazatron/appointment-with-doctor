@@ -4,11 +4,13 @@ import { useState } from "react";
 import { cn } from "../lib/utils";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const AvailableHours = ({ freeTimes }) => {
   const [selectedTime, setSelectedTime] = useState();
   const [loading, setLoading] = useState(false);
   const { currentUser } = useSelector((state) => state.user);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,6 +37,7 @@ const AvailableHours = ({ freeTimes }) => {
       }
 
       toast.success("Вы успешно записаны к доктору");
+      navigate(0);
     } catch (error) {
       toast.error(error.message);
       setLoading(false);
