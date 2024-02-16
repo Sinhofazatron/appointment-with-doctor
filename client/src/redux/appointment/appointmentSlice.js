@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  currentAppointments: null,
+  currentAppointments: [],
 };
 
 const userSlice = createSlice({
