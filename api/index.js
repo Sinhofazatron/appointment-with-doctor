@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import appointmentRouter from "./routes/appointment.route.js";
+import path from "path";
 
 mongoose
   .connect(
@@ -13,6 +14,8 @@ mongoose
     console.log("Connected MongoDB");
   })
   .catch((error) => console.log(error));
+
+  const __dirname = path.resolve();
 
 const app = express();
 
@@ -27,6 +30,12 @@ app.listen(3000, () => {
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/appointment", appointmentRouter);
+
+app.use(express.static(path.join(__dirname, "/client/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "dist", "index.html"));
+});
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
