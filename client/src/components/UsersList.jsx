@@ -4,6 +4,10 @@ import dayjs from "dayjs";
 export default function UsersList() {
   const { currentAppointments } = useSelector((state) => state.appointment);
 
+  if(!currentAppointments) {
+    return null
+  }
+  
   return (
     <div className="max-md:mt-8">
       <p className="mt-3 mb-7 font-semibold text-lg">Список пациентов:</p>
