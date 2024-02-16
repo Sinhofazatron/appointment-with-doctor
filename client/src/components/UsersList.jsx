@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import * as dayjs from "dayjs";
+import dayjs from "dayjs";
 
 export default function UsersList() {
   const { currentAppointments } = useSelector((state) => state.appointment);
