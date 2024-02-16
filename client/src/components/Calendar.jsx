@@ -111,11 +111,15 @@ export default function Calendar() {
   }, [selectedDay]);
 
   // Comparison of free time and busy time
-  let allAppointment = currentAppointments?.map((item) => item.appointmentHour);
+  let allAppointment;
   const allBusyTimes = [];
 
-  for (let appointment of allAppointment) {
-    appointment.map((item) => allBusyTimes.push(item));
+  if (currentAppointments) {
+    allAppointment = currentAppointments.map((item) => item.appointmentHour);
+
+    for (let appointment of allAppointment) {
+      appointment.map((item) => allBusyTimes.push(item));
+    }
   }
 
   let allTimesArray = allTimes.map((item) => String(new Date(item)));
